@@ -1,0 +1,42 @@
+{{#*inline "Index"}}
+@Index("{{name}}",[{{#columns}}"{{toPropertyName .}}",{{/columns~}}],{ {{json options}} })
+{{/inline}}
+
+{{#*inline "Import"}}
+import {{localImport (toClassName entityName "Model")}} from './{{toFileName fileName}}'
+{{/inline}}
+
+{{#*inline "Column"}}
+{{toPropertyName tscName}}:{{tscType}}{{#if options.nullable}} | null{{/if}},
+{{/inline}}
+
+{{#*inline "Attributes"}}
+export type {{toClassName tscName "Attributes"}} = {
+    {{#columns}}{{> Column}}{{/columns~}}
+}
+{{/inline}}
+
+{{#*inline "Entity"}}
+export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{toClassName tscName "Model"}}, {{toClassName tscName "Attributes"}}> {
+    static tableName = '{{tscName}}';
+
+    get tableName() {
+        return '{{tscName}}';
+    }
+
+    {{printHasTimestamps columns}}
+
+    {{printGeometries columns}}
+
+}
+{{/inline}}
+
+/* WARNING!!! This file is auto-generated, any manual changes will be OVERWRITTEN! */
+import { Model } from './base';
+{{#fileImports}}{{> Import}}{{/fileImports}}
+
+{{> Attributes}}
+
+{{> Entity}}
+
+export const {{toClassName tscName ""}} = () => new {{toClassName tscName "Model"}}();
