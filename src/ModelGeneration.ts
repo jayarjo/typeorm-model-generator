@@ -30,8 +30,8 @@ export default function modelGenerationPhase(
         const tsconfigPath = path.resolve(resultPath, "tsconfig.json");
         const typeormConfigPath = path.resolve(resultPath, "ormconfig.json");
 
-        createTsConfigFile(tsconfigPath);
-        createTypeOrmConfig(typeormConfigPath, connectionOptions);
+        createTsConfigFile(tsconfigPath, generationOptions);
+        createTypeOrmConfig(typeormConfigPath, connectionOptions, generationOptions);
         entitiesPath = path.resolve(resultPath, "./entities");
         if (!fs.existsSync(entitiesPath)) {
             fs.mkdirSync(entitiesPath);
@@ -50,6 +50,7 @@ function generateModels(
 ) {
     const entityTemplatePath = path.resolve(
         __dirname,
+        generationOptions.orm,
         "templates",
         "entity.mst"
     );
@@ -111,7 +112,7 @@ function createIndexFile(
     generationOptions: IGenerationOptions,
     entitiesPath: string
 ) {
-    const templatePath = path.resolve(__dirname, "templates", "index.mst");
+    const templatePath = path.resolve(__dirname, generationOptions.orm, "templates", "index.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
@@ -261,14 +262,14 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
     });
 }
 
-function createTsConfigFile(tsconfigPath: string): void {
+function createTsConfigFile(tsconfigPath: string, generationOptions: IGenerationOptions): void {
     if (fs.existsSync(tsconfigPath)) {
         console.warn(
             `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Skipping generation of tsconfig.json file. File already exists. \x1b[0m`
         );
         return;
     }
-    const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
+    const templatePath = path.resolve(__dirname, generationOptions.orm, "templates", "tsconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
@@ -282,7 +283,8 @@ function createTsConfigFile(tsconfigPath: string): void {
 }
 function createTypeOrmConfig(
     typeormConfigPath: string,
-    connectionOptions: IConnectionOptions
+    connectionOptions: IConnectionOptions,
+    generationOptions: IGenerationOptions
 ): void {
     if (fs.existsSync(typeormConfigPath)) {
         console.warn(
@@ -290,7 +292,7 @@ function createTypeOrmConfig(
         );
         return;
     }
-    const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
+    const templatePath = path.resolve(__dirname, generationOptions.orm, "templates", "ormconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compiledTemplate = Handlebars.compile(template, {
         noEscape: true,
