@@ -85,14 +85,17 @@ function generateModels(
             `${casedFileName}.ts`
         );
         const rendered = entityCompliedTemplate(element);
-        const withImportStatements = removeUnusedImports(
-            EOL !== eolConverter[generationOptions.convertEol]
-                ? rendered.replace(
-                      /(\r\n|\n|\r)/gm,
-                      eolConverter[generationOptions.convertEol]
+        const withImportStatements =
+            generationOptions.orm === "typeorm"
+                ? removeUnusedImports(
+                      EOL !== eolConverter[generationOptions.convertEol]
+                          ? rendered.replace(
+                                /(\r\n|\n|\r)/gm,
+                                eolConverter[generationOptions.convertEol]
+                            )
+                          : rendered
                   )
-                : rendered
-        );
+                : rendered;
         let formatted = "";
         try {
             formatted = Prettier.format(withImportStatements, prettierOptions);
