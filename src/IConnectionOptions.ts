@@ -32,7 +32,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         schemaNames: [""],
         instanceName: undefined,
         ssl: false,
-        skipTables: [],
+        skipTables: ["spatial_ref_sys", "schema_migrations"],
         onlyTables: [],
     };
     return connectionOptions;
