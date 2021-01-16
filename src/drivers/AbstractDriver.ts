@@ -340,6 +340,13 @@ export default abstract class AbstractDriver {
             const relatedRelation: Relation = {
                 fieldName: ownerRelation.relatedField,
                 relatedField: ownerRelation.fieldName,
+                joinColumnOptions: relationTmp.relatedColumns.map((v, idx) => {
+                    const retVal: Required<JoinColumnOptions> = {
+                        name: v,
+                        referencedColumnName: relationTmp.ownerColumns[idx],
+                    };
+                    return retVal;
+                }),
                 relatedTable: relationTmp.ownerTable.tscName,
                 relationType: isOneToMany ? "OneToMany" : "OneToOne",
             };
