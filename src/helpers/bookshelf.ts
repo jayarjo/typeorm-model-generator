@@ -55,4 +55,20 @@ export default (generationOptions: IGenerationOptions) => ({
             }`
             : "";
     },
+
+    toRelationMethod(relationType) {
+        switch (relationType) {
+            case "OneToOne":
+                return "hasOne";
+            case "OneToMany":
+                return "hasMany";
+            case "ManyToOne":
+                return "belongsTo";
+            case "ManyToMany":
+                return "belongsToMany";
+            default:
+                // should never happen, but prepare to crash vocally
+                return `UNSUPPORTED_RELATION: ${relationType}`;
+        }
+    },
 });

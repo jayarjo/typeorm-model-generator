@@ -50,6 +50,17 @@ export default (generationOptions) => ({
         return retStr;
     },
 
+    toRelation(entityType: string, relationType: Relation["relationType"]) {
+        let retVal = entityType;
+        if (relationType === "ManyToMany" || relationType === "OneToMany") {
+            retVal = `${retVal}[]`;
+        }
+        if (generationOptions.lazy) {
+            retVal = `Promise<${retVal}>`;
+        }
+        return retVal;
+    },
+
     defaultExport() {
         return generationOptions.exportType === "default" ? "default" : "";
     },

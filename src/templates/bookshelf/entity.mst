@@ -10,10 +10,23 @@ import {{localImport (toClassName entityName "Model")}} from './{{toFileName fil
 {{toPropertyName tscName}}:{{tscType}}{{#if options.nullable}} | null{{/if}},
 {{/inline}}
 
+{{#*inline "RelationAttribute"}}
+{{toPropertyName fieldName}}?: {{toRelation (toClassName relatedTable "Model") relationType}},
+{{/inline}}
+
 {{#*inline "Attributes"}}
 export type {{toClassName tscName "Attributes"}} = {
     {{#columns}}{{> Column}}{{/columns~}}
+    // relations
+    {{#relations}}{{> RelationAttribute}}{{/relations}}
 }
+{{/inline}}
+
+{{#*inline "Relation"}}
+{{toPropertyName fieldName}}(): {{toRelation (toClassName relatedTable "Model") relationType}} {
+    return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}, '{{joinColumnOptions.[0].referencedColumnName}}');
+}
+
 {{/inline}}
 
 {{#*inline "Entity"}}
@@ -27,6 +40,8 @@ export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{t
     {{printHasTimestamps columns}}
 
     {{printGeometries columns}}
+
+    {{#relations}}{{> Relation}}{{/relations~}}
 
 }
 {{/inline}}
