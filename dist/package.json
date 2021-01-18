@@ -1,10 +1,20 @@
 {
   "name": "typeorm-model-generator",
-  "version": "0.4.5-gamma",
+  "version": "0.4.5-orm",
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
   "main": "./dist/src/library.js",
   "types": "./dist/src/library.d.ts",
+  "files": [
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "DEVELOPER.md",
+    "LICENSE",
+    "README.md",       
+    "USECASES.md",
+    "bin/",
+    "dist/"
+  ],
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "build": "npm run clean && tsc && ncp src/templates/ dist/src/templates/ && ncp package.json dist/package.json",
