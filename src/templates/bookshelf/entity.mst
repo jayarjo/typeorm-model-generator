@@ -14,7 +14,6 @@ import {{localImport (toClassName entityName "Model")}} from './{{toFileName fil
 {{toPropertyName tscName}}: {
     name: '{{tscName}}',
     type: '{{type}}',
-    tsType: '{{tscType}}',
     {{~#if primary}}isPrimary: true,{{/if}}
     {{~#if isUsedInRelationAsOwner}}isForeignKey: true,{{/if}}
     {{~#if options.nullable}}isNullable: true,{{/if}}
