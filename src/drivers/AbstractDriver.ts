@@ -76,8 +76,9 @@ export default abstract class AbstractDriver {
                     (v) =>
                         v.joinColumnOptions && v.relationType !== "ManyToMany"
                 ) &&
-                entity.relations[0].relatedTable !==
-                    entity.relations[1].relatedTable &&
+                // allow ManyToMany on own self for now
+                // entity.relations[0].relatedTable !==
+                //     entity.relations[1].relatedTable &&
                 entity.relations[0].joinColumnOptions!.length ===
                     entity.relations[1].joinColumnOptions!.length &&
                 entity.columns.length ===
