@@ -3,6 +3,7 @@ import { plural, singular } from "pluralize";
 import IGenerationOptions from "../IGenerationOptions";
 import commonHelpers from "./common";
 import { Column } from "../models/Column";
+import { Relation } from "../models/Relation";
 
 export default (generationOptions: IGenerationOptions) => ({
     ...commonHelpers(generationOptions),
@@ -76,5 +77,12 @@ export default (generationOptions: IGenerationOptions) => ({
                 // should never happen, but prepare to crash vocally
                 return `UNSUPPORTED_RELATION: ${relationType}`;
         }
+    },
+
+    printJoinOptions(relation: Relation) {
+        if (relation.relationType === "ManyToMany") {
+            return `'${relation.joinTableOptions?.name}', '${relation.joinTableOptions?.joinColumns?.[0].name}', '${relation.joinTableOptions?.inverseJoinColumns?.[0].name}'`;
+        }
+        return `'${relation.joinColumnOptions?.[0].referencedColumnName}'`;
     },
 });

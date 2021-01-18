@@ -44,7 +44,7 @@ const meta = {
 
 {{#*inline "Relation"}}
 {{toPropertyName fieldName}}(): {{toRelation (toClassName relatedTable "Model") relationType}} {
-    return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}, '{{joinColumnOptions.[0].referencedColumnName}}');
+    return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}, {{printJoinOptions .}});
 }
 
 {{/inline}}
