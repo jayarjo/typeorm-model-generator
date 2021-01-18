@@ -56,6 +56,12 @@ export default (generationOptions: IGenerationOptions) => ({
             : "";
     },
 
+    printArray(arr) {
+        return `[${arr
+            .map((item) => (typeof item === "number" ? item : `'${item}'`))
+            .join(", ")}]`;
+    },
+
     toRelationMethod(relationType) {
         switch (relationType) {
             case "OneToOne":

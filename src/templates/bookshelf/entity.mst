@@ -10,6 +10,20 @@ import {{localImport (toClassName entityName "Model")}} from './{{toFileName fil
 {{toPropertyName tscName}}:{{tscType}}{{#if options.nullable}} | null{{/if}},
 {{/inline}}
 
+{{#*inline "ColumnMeta"}}
+{{toPropertyName tscName}}: {
+    name: '{{tscName}}',
+    type: '{{type}}',
+    tsType: '{{tscType}}',
+    {{~#if primary}}isPrimary: true,{{/if}}
+    {{~#if isUsedInRelationAsOwner}}isForeignKey: true,{{/if}}
+    {{~#if options.nullable}}isNullable: true,{{/if}}
+    {{~#if options.array}}isArray: true,{{/if}}
+    {{~#if options.enum}}options: {{printArray options.enum}},{{/if}}
+},
+{{/inline}}
+
+
 {{#*inline "RelationAttribute"}}
 {{toPropertyName fieldName}}?: {{toRelation (toClassName relatedTable "Model") relationType}},
 {{/inline}}
@@ -22,6 +36,12 @@ export type {{toClassName tscName "Attributes"}} = {
 }
 {{/inline}}
 
+{{#*inline "Meta"}}
+const meta = {
+    {{#columns}}{{> ColumnMeta}}{{/columns~}}
+};
+{{/inline}}
+
 {{#*inline "Relation"}}
 {{toPropertyName fieldName}}(): {{toRelation (toClassName relatedTable "Model") relationType}} {
     return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}, '{{joinColumnOptions.[0].referencedColumnName}}');
@@ -32,6 +52,8 @@ export type {{toClassName tscName "Attributes"}} = {
 {{#*inline "Entity"}}
 export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{toClassName tscName "Model"}}, {{toClassName tscName "Attributes"}}> {
     static tableName = '{{tscName}}';
+
+    static attributes = meta;
 
     get tableName() {
         return '{{tscName}}';
@@ -54,6 +76,8 @@ import { Model } from './base';
 {{#fileImports}}{{> Import}}{{/fileImports}}
 
 {{> Attributes}}
+
+{{> Meta}}
 
 {{> Entity}}
 
