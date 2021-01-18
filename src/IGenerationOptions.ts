@@ -23,6 +23,8 @@ export default interface IGenerationOptions {
     skipSchema: boolean;
     indexFile: boolean;
     exportType: "named" | "default";
+    orm: "typeorm" | "bookshelf";
+    relationAliases: Record<string, string>;
 }
 
 export const eolConverter = {
@@ -33,9 +35,9 @@ export const eolConverter = {
 export function getDefaultGenerationOptions(): IGenerationOptions {
     const generationOptions: IGenerationOptions = {
         resultsPath: path.resolve(process.cwd(), "output"),
-        pluralizeNames: true,
-        noConfigs: false,
-        convertCaseFile: "pascal",
+        pluralizeNames: false,
+        noConfigs: true,
+        convertCaseFile: "none",
         convertCaseEntity: "pascal",
         convertCaseProperty: "camel",
         convertEol: EOL === "\n" ? "LF" : "CRLF",
@@ -47,8 +49,10 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         relationIds: false,
         strictMode: "none",
         skipSchema: false,
-        indexFile: false,
+        indexFile: true,
         exportType: "named",
+        orm: "bookshelf",
+        relationAliases: {},
     };
     return generationOptions;
 }

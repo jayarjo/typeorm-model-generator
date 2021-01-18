@@ -1,0 +1,84 @@
+{{#*inline "Index"}}
+@Index("{{name}}",[{{#columns}}"{{toPropertyName .}}",{{/columns~}}],{ {{json options}} })
+{{/inline}}
+
+{{#*inline "Import"}}
+import {{localImport (toClassName entityName "Model")}} from './{{toFileName fileName}}'
+{{/inline}}
+
+{{#*inline "Column"}}
+{{toPropertyName tscName}}:{{tscType}}{{#if options.nullable}} | null{{/if}},
+{{/inline}}
+
+{{#*inline "ColumnMeta"}}
+{{toPropertyName tscName}}: {
+    name: '{{tscName}}',
+    type: '{{type}}',
+    tsType: '{{tscType}}',
+    {{~#if primary}}isPrimary: true,{{/if}}
+    {{~#if isUsedInRelationAsOwner}}isForeignKey: true,{{/if}}
+    {{~#if options.nullable}}isNullable: true,{{/if}}
+    {{~#if options.array}}isArray: true,{{/if}}
+    {{~#if options.enum}}options: {{printArray options.enum}},{{/if}}
+},
+{{/inline}}
+
+
+{{#*inline "RelationAttribute"}}
+{{toPropertyName fieldName}}?: {{toRelation (toClassName relatedTable "Model") relationType}},
+{{/inline}}
+
+{{#*inline "Attributes"}}
+export type {{toClassName tscName "Attributes"}} = {
+    {{#columns}}{{> Column}}{{/columns~}}
+    // relations
+    {{#relations}}{{> RelationAttribute}}{{/relations}}
+}
+{{/inline}}
+
+{{#*inline "Meta"}}
+const meta = {
+    {{#columns}}{{> ColumnMeta}}{{/columns~}}
+};
+{{/inline}}
+
+{{#*inline "Relation"}}
+{{toPropertyName fieldName}}(): {{toRelation (toClassName relatedTable "Model") relationType}} {
+    return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}, {{printJoinOptions .}});
+}
+
+{{/inline}}
+
+{{#*inline "Entity"}}
+export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{toClassName tscName "Model"}}, {{toClassName tscName "Attributes"}}> {
+    static tableName = '{{tscName}}';
+
+    static attributes = meta;
+
+    get tableName() {
+        return '{{tscName}}';
+    }
+
+    {{printHasTimestamps columns}}
+
+    {{printGeometries columns}}
+
+    {{#relations}}{{> Relation}}{{/relations~}}
+
+}
+{{/inline}}
+
+// WARNING!!!
+// This file is auto-generated (via `yarn generate:models`) - any manual change WILL BE overwritten.
+// If you are looking to add or modify structure or functionality, consider to either adjust model
+// generation configuration or simply extend the given class with a child model.
+import { Model } from './base';
+{{#fileImports}}{{> Import}}{{/fileImports}}
+
+{{> Attributes}}
+
+{{> Meta}}
+
+{{> Entity}}
+
+export const {{toClassName tscName ""}} = () => new {{toClassName tscName "Model"}}();

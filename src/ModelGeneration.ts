@@ -7,7 +7,7 @@ import { EOL } from "os";
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
-import { Relation } from "./models/Relation";
+import * as HandlebarsHelpers from "./helpers";
 
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
@@ -30,8 +30,12 @@ export default function modelGenerationPhase(
         const tsconfigPath = path.resolve(resultPath, "tsconfig.json");
         const typeormConfigPath = path.resolve(resultPath, "ormconfig.json");
 
-        createTsConfigFile(tsconfigPath);
-        createTypeOrmConfig(typeormConfigPath, connectionOptions);
+        createTsConfigFile(tsconfigPath, generationOptions);
+        createTypeOrmConfig(
+            typeormConfigPath,
+            connectionOptions,
+            generationOptions
+        );
         entitiesPath = path.resolve(resultPath, "./entities");
         if (!fs.existsSync(entitiesPath)) {
             fs.mkdirSync(entitiesPath);
@@ -51,6 +55,7 @@ function generateModels(
     const entityTemplatePath = path.resolve(
         __dirname,
         "templates",
+        generationOptions.orm,
         "entity.mst"
     );
     const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
@@ -80,14 +85,17 @@ function generateModels(
             `${casedFileName}.ts`
         );
         const rendered = entityCompliedTemplate(element);
-        const withImportStatements = removeUnusedImports(
-            EOL !== eolConverter[generationOptions.convertEol]
-                ? rendered.replace(
-                      /(\r\n|\n|\r)/gm,
-                      eolConverter[generationOptions.convertEol]
+        const withImportStatements =
+            generationOptions.orm === "typeorm"
+                ? removeUnusedImports(
+                      EOL !== eolConverter[generationOptions.convertEol]
+                          ? rendered.replace(
+                                /(\r\n|\n|\r)/gm,
+                                eolConverter[generationOptions.convertEol]
+                            )
+                          : rendered
                   )
-                : rendered
-        );
+                : rendered;
         let formatted = "";
         try {
             formatted = Prettier.format(withImportStatements, prettierOptions);
@@ -111,7 +119,12 @@ function createIndexFile(
     generationOptions: IGenerationOptions,
     entitiesPath: string
 ) {
-    const templatePath = path.resolve(__dirname, "templates", "index.mst");
+    const templatePath = path.resolve(
+        __dirname,
+        "templates",
+        generationOptions.orm,
+        "index.mst"
+    );
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
@@ -156,119 +169,29 @@ function removeUnusedImports(rendered: string) {
 }
 
 function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
-    Handlebars.registerHelper("json", (context) => {
-        const json = JSON.stringify(context);
-        const withoutQuotes = json.replace(/"([^(")"]+)":/g, "$1:");
-        return withoutQuotes.slice(1, withoutQuotes.length - 1);
-    });
-    Handlebars.registerHelper("toEntityName", (str) => {
-        let retStr = "";
-        switch (generationOptions.convertCaseEntity) {
-            case "camel":
-                retStr = changeCase.camelCase(str);
-                break;
-            case "pascal":
-                retStr = changeCase.pascalCase(str);
-                break;
-            case "none":
-                retStr = str;
-                break;
-            default:
-                throw new Error("Unknown case style");
-        }
-        return retStr;
-    });
-    Handlebars.registerHelper("toFileName", (str) => {
-        let retStr = "";
-        switch (generationOptions.convertCaseFile) {
-            case "camel":
-                retStr = changeCase.camelCase(str);
-                break;
-            case "param":
-                retStr = changeCase.paramCase(str);
-                break;
-            case "pascal":
-                retStr = changeCase.pascalCase(str);
-                break;
-            case "none":
-                retStr = str;
-                break;
-            default:
-                throw new Error("Unknown case style");
-        }
-        return retStr;
-    });
-    Handlebars.registerHelper("printPropertyVisibility", () =>
-        generationOptions.propertyVisibility !== "none"
-            ? `${generationOptions.propertyVisibility} `
-            : ""
+    const helpers = HandlebarsHelpers[generationOptions.orm](generationOptions);
+
+    Object.keys(helpers).forEach((name) =>
+        Handlebars.registerHelper(name, helpers[name])
     );
-    Handlebars.registerHelper("toPropertyName", (str) => {
-        let retStr = "";
-        switch (generationOptions.convertCaseProperty) {
-            case "camel":
-                retStr = changeCase.camelCase(str);
-                break;
-            case "pascal":
-                retStr = changeCase.pascalCase(str);
-                break;
-            case "none":
-                retStr = str;
-                break;
-            case "snake":
-                retStr = changeCase.snakeCase(str);
-                break;
-            default:
-                throw new Error("Unknown case style");
-        }
-        return retStr;
-    });
-    Handlebars.registerHelper(
-        "toRelation",
-        (entityType: string, relationType: Relation["relationType"]) => {
-            let retVal = entityType;
-            if (relationType === "ManyToMany" || relationType === "OneToMany") {
-                retVal = `${retVal}[]`;
-            }
-            if (generationOptions.lazy) {
-                retVal = `Promise<${retVal}>`;
-            }
-            return retVal;
-        }
-    );
-    Handlebars.registerHelper("defaultExport", () =>
-        generationOptions.exportType === "default" ? "default" : ""
-    );
-    Handlebars.registerHelper("localImport", (entityName: string) =>
-        generationOptions.exportType === "default"
-            ? entityName
-            : `{${entityName}}`
-    );
-    Handlebars.registerHelper("strictMode", () =>
-        generationOptions.strictMode !== "none"
-            ? generationOptions.strictMode
-            : ""
-    );
-    Handlebars.registerHelper({
-        and: (v1, v2) => v1 && v2,
-        eq: (v1, v2) => v1 === v2,
-        gt: (v1, v2) => v1 > v2,
-        gte: (v1, v2) => v1 >= v2,
-        lt: (v1, v2) => v1 < v2,
-        lte: (v1, v2) => v1 <= v2,
-        ne: (v1, v2) => v1 !== v2,
-        or: (v1, v2) => v1 || v2,
-    });
 }
 
-function createTsConfigFile(tsconfigPath: string): void {
+function createTsConfigFile(
+    tsconfigPath: string,
+    generationOptions: IGenerationOptions
+): void {
     if (fs.existsSync(tsconfigPath)) {
         console.warn(
             `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Skipping generation of tsconfig.json file. File already exists. \x1b[0m`
         );
         return;
     }
-    const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
+    const templatePath = path.resolve(
+        __dirname,
+        "templates",
+        generationOptions.orm,
+        "tsconfig.mst"
+    );
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
@@ -282,7 +205,8 @@ function createTsConfigFile(tsconfigPath: string): void {
 }
 function createTypeOrmConfig(
     typeormConfigPath: string,
-    connectionOptions: IConnectionOptions
+    connectionOptions: IConnectionOptions,
+    generationOptions: IGenerationOptions
 ): void {
     if (fs.existsSync(typeormConfigPath)) {
         console.warn(
@@ -290,7 +214,12 @@ function createTypeOrmConfig(
         );
         return;
     }
-    const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
+    const templatePath = path.resolve(
+        __dirname,
+        "templates",
+        generationOptions.orm,
+        "ormconfig.mst"
+    );
     const template = fs.readFileSync(templatePath, "utf-8");
     const compiledTemplate = Handlebars.compile(template, {
         noEscape: true,

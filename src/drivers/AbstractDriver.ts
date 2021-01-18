@@ -76,8 +76,9 @@ export default abstract class AbstractDriver {
                     (v) =>
                         v.joinColumnOptions && v.relationType !== "ManyToMany"
                 ) &&
-                entity.relations[0].relatedTable !==
-                    entity.relations[1].relatedTable &&
+                // allow ManyToMany on own self for now
+                // entity.relations[0].relatedTable !==
+                //     entity.relations[1].relatedTable &&
                 entity.relations[0].joinColumnOptions!.length ===
                     entity.relations[1].joinColumnOptions!.length &&
                 entity.columns.length ===
@@ -340,6 +341,13 @@ export default abstract class AbstractDriver {
             const relatedRelation: Relation = {
                 fieldName: ownerRelation.relatedField,
                 relatedField: ownerRelation.fieldName,
+                joinColumnOptions: relationTmp.relatedColumns.map((v, idx) => {
+                    const retVal: Required<JoinColumnOptions> = {
+                        name: v,
+                        referencedColumnName: relationTmp.ownerColumns[idx],
+                    };
+                    return retVal;
+                }),
                 relatedTable: relationTmp.ownerTable.tscName,
                 relationType: isOneToMany ? "OneToMany" : "OneToOne",
             };

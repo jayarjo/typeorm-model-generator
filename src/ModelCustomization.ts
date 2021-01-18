@@ -89,12 +89,30 @@ export default function modelCustomizationPhase(
     }
     namingStrategy.enablePluralization(generationOptions.pluralizeNames);
     let retVal = removeIndicesGeneratedByTypeorm(dbModel);
-    retVal = removeColumnsInRelation(dbModel);
-    retVal = applyNamingStrategy(namingStrategy, dbModel);
+    // because we now allow ManyToMany on own self, we might end up with relations that
+    // reference tables that were removed from dbModel on FindManyToManyRelations step
+    retVal = removeInvalidRelations(retVal);
+    retVal = removeColumnsInRelation(retVal);
+    retVal = applyNamingStrategy(namingStrategy, retVal, generationOptions);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
 }
+
+function removeInvalidRelations(dbModel: Entity[]) {
+    return dbModel.map((entity) => {
+        return {
+            ...entity,
+            relations: entity.relations.filter((relation) => {
+                return dbModel.some(
+                    (relatedEntity) =>
+                        relatedEntity.sqlName === relation.relatedTable
+                );
+            }),
+        };
+    });
+}
+
 function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
     // TODO: Support typeorm CustomNamingStrategy
     const namingStrategy = new DefaultNamingStrategy();
@@ -204,7 +222,7 @@ function findFileImports(dbModel: Entity[]) {
                     (v) => v.entityName === relation.relatedTable
                 )
             ) {
-                let relatedTable = dbModel.find(
+                const relatedTable = dbModel.find(
                     (related) => related.tscName == relation.relatedTable
                 )!;
                 entity.fileImports.push({
@@ -247,9 +265,10 @@ function addImportsAndGenerationOptions(
 
 function applyNamingStrategy(
     namingStrategy: typeof NamingStrategy,
-    dbModel: Entity[]
+    dbModel: Entity[],
+    generationOptions: IGenerationOptions
 ): Entity[] {
-    let retVal = changeRelationNames(dbModel);
+    let retVal = changeRelationNames(dbModel, generationOptions);
     retVal = changeRelationIdNames(retVal);
     retVal = changeEntityNames(retVal);
     retVal = changeColumnNames(retVal);
@@ -285,7 +304,10 @@ function applyNamingStrategy(
         return dbModel;
     }
 
-    function changeRelationNames(model: Entity[]): Entity[] {
+    function changeRelationNames(
+        model: Entity[],
+        generationOptions: IGenerationOptions
+    ): Entity[] {
         model.forEach((entity) => {
             entity.relations.forEach((relation) => {
                 const oldName = relation.fieldName;
@@ -308,6 +330,11 @@ function applyNamingStrategy(
                     .forEach((v) => {
                         v.relationField = newName;
                     });
+
+                newName =
+                    generationOptions.relationAliases[
+                        `${entity.sqlName}.${newName}`
+                    ] ?? newName;
 
                 relation.fieldName = newName;
                 relation2.relatedField = newName;
