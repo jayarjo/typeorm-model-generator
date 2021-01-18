@@ -24,6 +24,7 @@ export default interface IGenerationOptions {
     indexFile: boolean;
     exportType: "named" | "default";
     orm: "typeorm" | "bookshelf";
+    relationAliases: Record<string, string>;
 }
 
 export const eolConverter = {
@@ -51,6 +52,7 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         indexFile: true,
         exportType: "named",
         orm: "bookshelf",
+        relationAliases: {},
     };
     return generationOptions;
 }

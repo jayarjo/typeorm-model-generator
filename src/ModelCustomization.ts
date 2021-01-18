@@ -93,7 +93,7 @@ export default function modelCustomizationPhase(
     // reference tables that were removed from dbModel on FindManyToManyRelations step
     retVal = removeInvalidRelations(retVal);
     retVal = removeColumnsInRelation(retVal);
-    retVal = applyNamingStrategy(namingStrategy, retVal);
+    retVal = applyNamingStrategy(namingStrategy, retVal, generationOptions);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
@@ -265,9 +265,10 @@ function addImportsAndGenerationOptions(
 
 function applyNamingStrategy(
     namingStrategy: typeof NamingStrategy,
-    dbModel: Entity[]
+    dbModel: Entity[],
+    generationOptions: IGenerationOptions
 ): Entity[] {
-    let retVal = changeRelationNames(dbModel);
+    let retVal = changeRelationNames(dbModel, generationOptions);
     retVal = changeRelationIdNames(retVal);
     retVal = changeEntityNames(retVal);
     retVal = changeColumnNames(retVal);
@@ -303,7 +304,10 @@ function applyNamingStrategy(
         return dbModel;
     }
 
-    function changeRelationNames(model: Entity[]): Entity[] {
+    function changeRelationNames(
+        model: Entity[],
+        generationOptions: IGenerationOptions
+    ): Entity[] {
         model.forEach((entity) => {
             entity.relations.forEach((relation) => {
                 const oldName = relation.fieldName;
@@ -326,6 +330,11 @@ function applyNamingStrategy(
                     .forEach((v) => {
                         v.relationField = newName;
                     });
+
+                newName =
+                    generationOptions.relationAliases[
+                        `${entity.sqlName}.${newName}`
+                    ] ?? newName;
 
                 relation.fieldName = newName;
                 relation2.relatedField = newName;
