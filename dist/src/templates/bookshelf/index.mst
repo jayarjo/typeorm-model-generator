@@ -1,5 +1,0 @@
-{{#entities~}}
-import {{localImport (toClassName tscName "Model")}} from './{{toFileName tscName}}'
-{{/entities}}
-
-export { {{#entities}}{{toClassName tscName "Model"}},{{/entities~}} }

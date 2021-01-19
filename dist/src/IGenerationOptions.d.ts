@@ -18,6 +18,8 @@ export default interface IGenerationOptions {
     exportType: "named" | "default";
     orm: "typeorm" | "bookshelf";
     relationAliases: Record<string, string>;
+    templatesPath: string;
+    helpersPaths: string;
 }
 export declare const eolConverter: {
     LF: string;

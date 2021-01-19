@@ -5,7 +5,6 @@ declare const _default: (generationOptions: any) => {
     toPropertyName(str: any): string;
     toRelation(entityType: string, relationType: Relation["relationType"]): string;
     defaultExport(): "default" | "";
-    localImport(entityName: string): string;
     strictMode(): any;
     and(v1: any, v2: any): any;
     eq(v1: any, v2: any): boolean;

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const changeCase = require("change-case");
 const common_1 = require("./common");
-exports.default = (generationOptions) => (Object.assign(Object.assign({}, common_1.default(generationOptions)), { json(context) {
+module.exports = (generationOptions) => (Object.assign(Object.assign({}, common_1.default(generationOptions)), { json(context) {
         const json = JSON.stringify(context);
         const withoutQuotes = json.replace(/"([^(")"]+)":/g, "$1:");
         return withoutQuotes.slice(1, withoutQuotes.length - 1);
@@ -23,5 +23,9 @@ exports.default = (generationOptions) => (Object.assign(Object.assign({}, common
                 throw new Error("Unknown case style");
         }
         return retStr;
+    }, localImport(...importNames) {
+        return generationOptions.exportType === "default"
+            ? importNames[0]
+            : `{${importNames.join(", ")}}`;
     } }));
 //# sourceMappingURL=typeorm.js.map

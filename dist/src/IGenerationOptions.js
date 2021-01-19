@@ -8,8 +8,11 @@ exports.eolConverter = {
     CRLF: "\r\n",
 };
 function getDefaultGenerationOptions() {
+    const orm = "bookshelf";
     const generationOptions = {
         resultsPath: path.resolve(process.cwd(), "output"),
+        templatesPath: path.resolve(__dirname, `./templates/${orm}`),
+        helpersPaths: path.resolve(__dirname, `./helpers/${orm}`),
         pluralizeNames: false,
         noConfigs: true,
         convertCaseFile: "none",
@@ -26,7 +29,7 @@ function getDefaultGenerationOptions() {
         skipSchema: false,
         indexFile: true,
         exportType: "named",
-        orm: "bookshelf",
+        orm,
         relationAliases: {},
     };
     return generationOptions;

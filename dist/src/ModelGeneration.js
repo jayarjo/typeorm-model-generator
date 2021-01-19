@@ -7,7 +7,6 @@ const fs = require("fs");
 const path = require("path");
 const os_1 = require("os");
 const IGenerationOptions_1 = require("./IGenerationOptions");
-const HandlebarsHelpers = require("./helpers");
 const prettierOptions = {
     parser: "typescript",
     endOfLine: "auto",
@@ -36,7 +35,7 @@ function modelGenerationPhase(connectionOptions, generationOptions, databaseMode
 }
 exports.default = modelGenerationPhase;
 function generateModels(databaseModel, generationOptions, entitiesPath) {
-    const entityTemplatePath = path.resolve(__dirname, "templates", generationOptions.orm, "entity.mst");
+    const entityTemplatePath = path.resolve(generationOptions.templatesPath, "entity.mst");
     const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
     const entityCompliedTemplate = Handlebars.compile(entityTemplate, {
         noEscape: true,
@@ -82,7 +81,7 @@ function generateModels(databaseModel, generationOptions, entitiesPath) {
     });
 }
 function createIndexFile(databaseModel, generationOptions, entitiesPath) {
-    const templatePath = path.resolve(__dirname, "templates", generationOptions.orm, "index.mst");
+    const templatePath = path.resolve(generationOptions.templatesPath, "index.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
@@ -120,7 +119,8 @@ function removeUnusedImports(rendered) {
     return `${rendered.substring(0, openBracketIndex)}${distinctImports.join(",")}${restOfEntityDefinition}`;
 }
 function createHandlebarsHelpers(generationOptions) {
-    const helpers = HandlebarsHelpers[generationOptions.orm](generationOptions);
+    // eslint-disable-next-line  import/no-dynamic-require, @typescript-eslint/no-var-requires, global-require
+    const helpers = require(generationOptions.helpersPaths)(generationOptions);
     Object.keys(helpers).forEach((name) => Handlebars.registerHelper(name, helpers[name]));
 }
 function createTsConfigFile(tsconfigPath, generationOptions) {
@@ -128,7 +128,7 @@ function createTsConfigFile(tsconfigPath, generationOptions) {
         console.warn(`\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Skipping generation of tsconfig.json file. File already exists. \x1b[0m`);
         return;
     }
-    const templatePath = path.resolve(__dirname, "templates", generationOptions.orm, "tsconfig.mst");
+    const templatePath = path.resolve(generationOptions.templatesPath, "tsconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
@@ -145,7 +145,7 @@ function createTypeOrmConfig(typeormConfigPath, connectionOptions, generationOpt
         console.warn(`\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Skipping generation of ormconfig.json file. File already exists. \x1b[0m`);
         return;
     }
-    const templatePath = path.resolve(__dirname, "templates", generationOptions.orm, "ormconfig.mst");
+    const templatePath = path.resolve(generationOptions.templatesPath, "ormconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compiledTemplate = Handlebars.compile(template, {
         noEscape: true,

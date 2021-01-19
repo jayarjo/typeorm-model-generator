@@ -182,7 +182,7 @@ function addImportsAndGenerationOptions(dbModel, generationOptions) {
     return dbModel;
 }
 function applyNamingStrategy(namingStrategy, dbModel, generationOptions) {
-    let retVal = changeRelationNames(dbModel, generationOptions);
+    let retVal = changeRelationNames(dbModel);
     retVal = changeRelationIdNames(retVal);
     retVal = changeEntityNames(retVal);
     retVal = changeColumnNames(retVal);
@@ -203,7 +203,7 @@ function applyNamingStrategy(namingStrategy, dbModel, generationOptions) {
         });
         return dbModel;
     }
-    function changeRelationNames(model, generationOptions) {
+    function changeRelationNames(model) {
         model.forEach((entity) => {
             entity.relations.forEach((relation) => {
                 var _a;

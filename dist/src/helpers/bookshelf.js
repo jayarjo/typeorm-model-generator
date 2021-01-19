@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const changeCase = require("change-case");
 const pluralize_1 = require("pluralize");
 const common_1 = require("./common");
-exports.default = (generationOptions) => (Object.assign(Object.assign({}, common_1.default(generationOptions)), { toClassName(tableName, suffix = "") {
+module.exports = (generationOptions) => (Object.assign(Object.assign({}, common_1.default(generationOptions)), { toClassName(tableName, suffix = "") {
         let retStr = "";
         switch (generationOptions.convertCaseEntity) {
             case "camel":
@@ -37,7 +37,7 @@ exports.default = (generationOptions) => (Object.assign(Object.assign({}, common
     printGeometries(columns) {
         const geometries = columns.reduce((cols, col) => col.type === "geometry" ? [...cols, col.tscName] : cols, []);
         return geometries.length
-            ? `get geometry() {
+            ? `get geometry(): string[] {
                 return ['${geometries.join(", ")}'];
             }`
             : "";
@@ -45,6 +45,14 @@ exports.default = (generationOptions) => (Object.assign(Object.assign({}, common
         return `[${arr
             .map((item) => (typeof item === "number" ? item : `'${item}'`))
             .join(", ")}]`;
+    },
+    printIdAttribute(columns) {
+        const primaryKeysCount = columns.reduce((sum, col) => col.primary ? sum + 1 : sum);
+        return primaryKeysCount !== 1
+            ? `get idAttribute() { 
+            return null 
+        }`
+            : "";
     },
     toRelationMethod(relationType) {
         switch (relationType) {
@@ -61,10 +69,19 @@ exports.default = (generationOptions) => (Object.assign(Object.assign({}, common
                 return `UNSUPPORTED_RELATION: ${relationType}`;
         }
     }, printJoinOptions(relation) {
-        var _a, _b, _c, _d, _e, _f;
-        if (relation.relationType === "ManyToMany") {
-            return `'${(_a = relation.joinTableOptions) === null || _a === void 0 ? void 0 : _a.name}', '${(_c = (_b = relation.joinTableOptions) === null || _b === void 0 ? void 0 : _b.joinColumns) === null || _c === void 0 ? void 0 : _c[0].name}', '${(_e = (_d = relation.joinTableOptions) === null || _d === void 0 ? void 0 : _d.inverseJoinColumns) === null || _e === void 0 ? void 0 : _e[0].name}'`;
+        var _a, _b, _c, _d, _e, _f, _g;
+        switch (relation.relationType) {
+            case "OneToOne":
+                return "";
+            case "OneToMany":
+                return `, '${(_a = relation.joinColumnOptions) === null || _a === void 0 ? void 0 : _a[0].referencedColumnName}'`;
+            case "ManyToOne":
+                return `, '${(_b = relation.joinColumnOptions) === null || _b === void 0 ? void 0 : _b[0].name}'`;
+            case "ManyToMany":
+                return `, '${(_c = relation.joinTableOptions) === null || _c === void 0 ? void 0 : _c.name}', '${(_e = (_d = relation.joinTableOptions) === null || _d === void 0 ? void 0 : _d.joinColumns) === null || _e === void 0 ? void 0 : _e[0].name}', '${(_g = (_f = relation.joinTableOptions) === null || _f === void 0 ? void 0 : _f.inverseJoinColumns) === null || _g === void 0 ? void 0 : _g[0].name}'`;
+            default:
+                // should never happen, but prepare to crash vocally
+                return `UNSUPPORTED_RELATION: ${relation.relationType}`;
         }
-        return `'${(_f = relation.joinColumnOptions) === null || _f === void 0 ? void 0 : _f[0].referencedColumnName}'`;
     } }));
 //# sourceMappingURL=bookshelf.js.map
