@@ -8,7 +8,7 @@ import { Relation } from "../models/Relation";
 module.exports = (generationOptions: IGenerationOptions) => ({
     ...commonHelpers(generationOptions),
 
-    toClassName(tableName, suffix = "") {
+    toClassName(tableName: string, suffix = "") {
         let retStr = "";
         switch (generationOptions.convertCaseEntity) {
             case "camel":
@@ -28,7 +28,7 @@ module.exports = (generationOptions: IGenerationOptions) => ({
         }${suffix}`;
     },
 
-    printHasTimestamps(columns) {
+    printHasTimestamps(columns: Column[]) {
         let hasCreatedAt = false;
         let hasUpdatedAt = false;
         columns.forEach((col: Column) => {
@@ -44,9 +44,9 @@ module.exports = (generationOptions: IGenerationOptions) => ({
         }`;
     },
 
-    printGeometries(columns) {
+    printGeometries(columns: Column[]) {
         const geometries = columns.reduce(
-            (cols, col: Column) =>
+            (cols: string[], col: Column) =>
                 col.type === "geometry" ? [...cols, col.tscName] : cols,
             []
         );
@@ -57,24 +57,25 @@ module.exports = (generationOptions: IGenerationOptions) => ({
             : "";
     },
 
-    printArray(arr) {
+    printArray(arr: any[]) {
         return `[${arr
             .map((item) => (typeof item === "number" ? item : `'${item}'`))
             .join(", ")}]`;
     },
 
-    printIdAttribute(columns) {
-        const primaryKeysCount = columns.reduce((sum, col) =>
-            col.primary ? sum + 1 : sum
+    printIdAttribute(columns: Column[]) {
+        const primaryKeysCount = columns.reduce(
+            (sum: number, col: Column) => (col.primary ? sum + 1 : sum),
+            0
         );
         return primaryKeysCount !== 1
             ? `get idAttribute() { 
-            return ''; 
+            return null 
         }`
             : "";
     },
 
-    printUuid(columns) {
+    printUuid(columns: Column[]) {
         const hasUuid = columns.find(
             (col) => col.primary && col.type === "uuid"
         );
@@ -85,7 +86,7 @@ module.exports = (generationOptions: IGenerationOptions) => ({
             : "";
     },
 
-    toRelationMethod(relationType) {
+    toRelationMethod(relationType: string) {
         switch (relationType) {
             case "OneToOne":
                 return "hasOne";
