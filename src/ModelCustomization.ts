@@ -268,7 +268,7 @@ function applyNamingStrategy(
     dbModel: Entity[],
     generationOptions: IGenerationOptions
 ): Entity[] {
-    let retVal = changeRelationNames(dbModel, generationOptions);
+    let retVal = changeRelationNames(dbModel);
     retVal = changeRelationIdNames(retVal);
     retVal = changeEntityNames(retVal);
     retVal = changeColumnNames(retVal);
@@ -304,10 +304,7 @@ function applyNamingStrategy(
         return dbModel;
     }
 
-    function changeRelationNames(
-        model: Entity[],
-        generationOptions: IGenerationOptions
-    ): Entity[] {
+    function changeRelationNames(model: Entity[]): Entity[] {
         model.forEach((entity) => {
             entity.relations.forEach((relation) => {
                 const oldName = relation.fieldName;

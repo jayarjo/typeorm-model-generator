@@ -7,7 +7,6 @@ import { EOL } from "os";
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
-import * as HandlebarsHelpers from "./helpers";
 
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
@@ -53,9 +52,7 @@ function generateModels(
     entitiesPath: string
 ) {
     const entityTemplatePath = path.resolve(
-        __dirname,
-        "templates",
-        generationOptions.orm,
+        generationOptions.templatesPath,
         "entity.mst"
     );
     const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
@@ -120,9 +117,7 @@ function createIndexFile(
     entitiesPath: string
 ) {
     const templatePath = path.resolve(
-        __dirname,
-        "templates",
-        generationOptions.orm,
+        generationOptions.templatesPath,
         "index.mst"
     );
     const template = fs.readFileSync(templatePath, "utf-8");
@@ -169,8 +164,8 @@ function removeUnusedImports(rendered: string) {
 }
 
 function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
-    const helpers = HandlebarsHelpers[generationOptions.orm](generationOptions);
-
+    // eslint-disable-next-line  import/no-dynamic-require, @typescript-eslint/no-var-requires, global-require
+    const helpers = require(generationOptions.helpersPaths)(generationOptions);
     Object.keys(helpers).forEach((name) =>
         Handlebars.registerHelper(name, helpers[name])
     );
@@ -187,9 +182,7 @@ function createTsConfigFile(
         return;
     }
     const templatePath = path.resolve(
-        __dirname,
-        "templates",
-        generationOptions.orm,
+        generationOptions.templatesPath,
         "tsconfig.mst"
     );
     const template = fs.readFileSync(templatePath, "utf-8");
@@ -215,9 +208,7 @@ function createTypeOrmConfig(
         return;
     }
     const templatePath = path.resolve(
-        __dirname,
-        "templates",
-        generationOptions.orm,
+        generationOptions.templatesPath,
         "ormconfig.mst"
     );
     const template = fs.readFileSync(templatePath, "utf-8");

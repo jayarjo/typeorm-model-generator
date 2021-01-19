@@ -25,6 +25,8 @@ export default interface IGenerationOptions {
     exportType: "named" | "default";
     orm: "typeorm" | "bookshelf";
     relationAliases: Record<string, string>;
+    templatesPath: string;
+    helpersPaths: string;
 }
 
 export const eolConverter = {
@@ -33,8 +35,11 @@ export const eolConverter = {
 };
 
 export function getDefaultGenerationOptions(): IGenerationOptions {
+    const orm = "bookshelf";
     const generationOptions: IGenerationOptions = {
         resultsPath: path.resolve(process.cwd(), "output"),
+        templatesPath: path.resolve(__dirname, `./templates/${orm}`),
+        helpersPaths: path.resolve(__dirname, `./helpers/${orm}`),
         pluralizeNames: false,
         noConfigs: true,
         convertCaseFile: "none",
@@ -51,7 +56,7 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         skipSchema: false,
         indexFile: true,
         exportType: "named",
-        orm: "bookshelf",
+        orm,
         relationAliases: {},
     };
     return generationOptions;
