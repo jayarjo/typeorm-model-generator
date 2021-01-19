@@ -60,7 +60,9 @@ export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{t
 
     {{printHasTimestamps columns}}
 
-    {{printIdAttribute colums}}
+    {{printUuid columns}}
+
+    {{printIdAttribute columns}}
 
     {{printGeometries columns}}
 

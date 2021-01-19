@@ -69,7 +69,18 @@ module.exports = (generationOptions: IGenerationOptions) => ({
         );
         return primaryKeysCount !== 1
             ? `get idAttribute() { 
-            return null 
+            return ''; 
+        }`
+            : "";
+    },
+
+    printUuid(columns) {
+        const hasUuid = columns.find(
+            (col) => col.primary && col.type === "uuid"
+        );
+        return hasUuid
+            ? `get uuid() { 
+            return true 
         }`
             : "";
     },
