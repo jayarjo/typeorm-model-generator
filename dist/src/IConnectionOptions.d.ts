@@ -10,5 +10,6 @@ export default interface IConnectionOptions {
     ssl: boolean;
     skipTables: string[];
     onlyTables: string[];
+    retrieveViews?: boolean;
 }
 export declare function getDefaultConnectionOptions(): IConnectionOptions;

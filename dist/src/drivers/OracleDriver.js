@@ -41,7 +41,7 @@ class OracleDriver extends AbstractDriver_1.default {
         });
         return ret;
     }
-    async GetCoulmnsFromEntity(entities) {
+    async GetColumnsFromEntity(entities) {
         const response = (await this.Connection.execute(`SELECT utc.*, (select count(*) from USER_CONS_COLUMNS ucc
              JOIN USER_CONSTRAINTS uc ON  uc.CONSTRAINT_NAME = ucc.CONSTRAINT_NAME and uc.CONSTRAINT_TYPE='U'
             where ucc.column_name = utc.COLUMN_NAME AND ucc.table_name = utc.TABLE_NAME) IS_UNIQUE

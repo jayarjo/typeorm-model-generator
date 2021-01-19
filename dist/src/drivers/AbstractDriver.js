@@ -115,8 +115,8 @@ class AbstractDriver {
     async GetDataFromServer(connectionOptions, generationOptions) {
         let dbModel = [];
         await this.ConnectToServer(connectionOptions);
-        dbModel = await this.GetAllTables(connectionOptions.schemaNames, connectionOptions.databaseNames);
-        await this.GetCoulmnsFromEntity(dbModel, connectionOptions.schemaNames, connectionOptions.databaseNames);
+        dbModel = await this.GetAllTables(connectionOptions.schemaNames, connectionOptions.databaseNames, !!connectionOptions.retrieveViews);
+        await this.GetColumnsFromEntity(dbModel, connectionOptions.schemaNames, connectionOptions.databaseNames);
         await this.GetIndexesFromEntity(dbModel, connectionOptions.schemaNames, connectionOptions.databaseNames);
         AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         dbModel = await this.GetRelations(dbModel, connectionOptions.schemaNames, connectionOptions.databaseNames, generationOptions);

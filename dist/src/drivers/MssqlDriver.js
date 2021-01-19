@@ -43,7 +43,7 @@ class MssqlDriver extends AbstractDriver_1.default {
         });
         return ret;
     }
-    async GetCoulmnsFromEntity(entities, schemas, dbNames) {
+    async GetColumnsFromEntity(entities, schemas, dbNames) {
         const request = new this.MSSQL.Request(this.Connection);
         const response = (await request.query(`SELECT c.TABLE_NAME,c.TABLE_SCHEMA,c.COLUMN_NAME,c.COLUMN_DEFAULT,IS_NULLABLE, DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
             COLUMNPROPERTY(object_id(c.TABLE_SCHEMA + '.'+ c.TABLE_NAME),c. COLUMN_NAME, 'IsIdentity') IsIdentity,

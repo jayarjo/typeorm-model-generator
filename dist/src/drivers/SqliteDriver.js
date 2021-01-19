@@ -48,7 +48,7 @@ class SqliteDriver extends AbstractDriver_1.default {
         });
         return ret;
     }
-    async GetCoulmnsFromEntity(entities) {
+    async GetColumnsFromEntity(entities) {
         await Promise.all(entities.map(async (ent) => {
             const response = await this.ExecQuery(`PRAGMA table_info('${ent.tscName}');`);
             response.forEach((resp) => {

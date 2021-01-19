@@ -12,7 +12,7 @@ export default class OracleDriver extends AbstractDriver {
     private Connection;
     constructor();
     GetAllTables(schemas: string[], dbNames: string[]): Promise<Entity[]>;
-    GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]>;
+    GetColumnsFromEntity(entities: Entity[]): Promise<Entity[]>;
     GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]>;
     GetRelations(entities: Entity[], schemas: string[], dbNames: string[], generationOptions: IGenerationOptions): Promise<Entity[]>;
     DisconnectFromServer(): Promise<void>;

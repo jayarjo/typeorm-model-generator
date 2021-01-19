@@ -12,8 +12,8 @@ export default class PostgresDriver extends AbstractDriver {
     private PG;
     private Connection;
     constructor();
-    GetAllTables(schemas: string[], dbNames: string[]): Promise<Entity[]>;
-    GetCoulmnsFromEntity(entities: Entity[], schemas: string[]): Promise<Entity[]>;
+    GetAllTables(schemas: string[], dbNames: string[], retrieveViews?: boolean): Promise<Entity[]>;
+    GetColumnsFromEntity(entities: Entity[], schemas: string[]): Promise<Entity[]>;
     MatchColumnTypes(dataType: string, udtName: string, enumValues: string | null): {
         tsType: Column["tscType"];
         sqlType: string;

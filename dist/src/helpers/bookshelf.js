@@ -19,7 +19,8 @@ module.exports = (generationOptions) => (Object.assign(Object.assign({}, common_
                 throw new Error("Unknown case style");
         }
         return `${generationOptions.pluralizeNames ? pluralize_1.plural(retStr) : pluralize_1.singular(retStr)}${suffix}`;
-    }, printHasTimestamps(columns) {
+    },
+    printHasTimestamps(columns) {
         let hasCreatedAt = false;
         let hasUpdatedAt = false;
         columns.forEach((col) => {
@@ -41,16 +42,28 @@ module.exports = (generationOptions) => (Object.assign(Object.assign({}, common_
                 return ['${geometries.join(", ")}'];
             }`
             : "";
-    }, printArray(arr) {
+    },
+    printArray(arr) {
         return `[${arr
             .map((item) => (typeof item === "number" ? item : `'${item}'`))
             .join(", ")}]`;
     },
+    printString(str) {
+        return `${str}`;
+    },
     printIdAttribute(columns) {
-        const primaryKeysCount = columns.reduce((sum, col) => col.primary ? sum + 1 : sum);
+        const primaryKeysCount = columns.reduce((sum, col) => (col.primary ? sum + 1 : sum), 0);
         return primaryKeysCount !== 1
             ? `get idAttribute() { 
             return null 
+        }`
+            : "";
+    },
+    printUuid(columns) {
+        const hasUuid = columns.find((col) => col.primary && col.type === "uuid");
+        return hasUuid
+            ? `get uuid() { 
+            return true 
         }`
             : "";
     },
@@ -68,7 +81,8 @@ module.exports = (generationOptions) => (Object.assign(Object.assign({}, common_
                 // should never happen, but prepare to crash vocally
                 return `UNSUPPORTED_RELATION: ${relationType}`;
         }
-    }, printJoinOptions(relation) {
+    },
+    printJoinOptions(relation) {
         var _a, _b, _c, _d, _e, _f, _g;
         switch (relation.relationType) {
             case "OneToOne":

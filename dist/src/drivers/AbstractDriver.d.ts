@@ -16,9 +16,9 @@ export default abstract class AbstractDriver {
     GetDataFromServer(connectionOptions: IConnectionOptions, generationOptions: IGenerationOptions): Promise<Entity[]>;
     static FilterGeneratedTables(dbModel: Entity[], skipTables: string[], onlyTables: string[]): Entity[];
     abstract ConnectToServer(connectionOptons: IConnectionOptions): Promise<void>;
-    abstract GetAllTables(schemas: string[], dbNames: string[]): Promise<Entity[]>;
+    abstract GetAllTables(schemas: string[], dbNames: string[], retrieveViews?: boolean): Promise<Entity[]>;
     static GetRelationsFromRelationTempInfo(relationsTemp: RelationInternal[], entities: Entity[], generationOptions: IGenerationOptions): Entity[];
-    abstract GetCoulmnsFromEntity(entities: Entity[], schemas: string[], dbNames: string[]): Promise<Entity[]>;
+    abstract GetColumnsFromEntity(entities: Entity[], schemas: string[], dbNames: string[]): Promise<Entity[]>;
     abstract GetIndexesFromEntity(entities: Entity[], schemas: string[], dbNames: string[]): Promise<Entity[]>;
     abstract GetRelations(entities: Entity[], schemas: string[], dbNames: string[], generationOptions: IGenerationOptions): Promise<Entity[]>;
     static FindPrimaryColumnsFromIndexes(dbModel: Entity[]): void;

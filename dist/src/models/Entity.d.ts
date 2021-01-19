@@ -18,4 +18,5 @@ export declare type Entity = {
     }[];
     activeRecord?: true;
     generateConstructor?: true;
+    isView?: boolean;
 };

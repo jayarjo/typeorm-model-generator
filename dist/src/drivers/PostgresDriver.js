@@ -21,8 +21,17 @@ class PostgresDriver extends AbstractDriver_1.default {
             throw error;
         }
     }
-    async GetAllTables(schemas, dbNames) {
-        const response = (await this.Connection.query(`SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${PostgresDriver.buildEscapedObjectList(schemas)})`)).rows;
+    async GetAllTables(schemas, dbNames, retrieveViews = false) {
+        const response = (await this.Connection.query(`SELECT 
+                table_schema as "TABLE_SCHEMA", 
+                table_name as "TABLE_NAME", 
+                table_catalog as "DB_NAME",
+                CASE WHEN TABLE_TYPE = 'VIEW' THEN true ELSE false END as "IS_VIEW"
+              FROM 
+                INFORMATION_SCHEMA.TABLES 
+              WHERE 
+                TABLE_TYPE in ('BASE TABLE'${retrieveViews ? `, 'VIEW'` : ""}) 
+                AND table_schema in (${PostgresDriver.buildEscapedObjectList(schemas)})`)).rows;
         const ret = [];
         response.forEach((val) => {
             ret.push({
@@ -36,39 +45,78 @@ class PostgresDriver extends AbstractDriver_1.default {
                 database: dbNames.length > 1 ? val.DB_NAME : "",
                 schema: val.TABLE_SCHEMA,
                 fileImports: [],
+                isView: val.IS_VIEW,
             });
         });
         return ret;
     }
-    async GetCoulmnsFromEntity(entities, schemas) {
-        const response = (await this.Connection
-            .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
-                    data_type,character_maximum_length,numeric_precision,numeric_scale,
-                    case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
-                    is_identity,
-        			(SELECT count(*)
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-                    on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-            where
-                tc.CONSTRAINT_TYPE = 'UNIQUE'
-                and tc.TABLE_NAME = c.TABLE_NAME
-                and cu.COLUMN_NAME = c.COLUMN_NAME
-                and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
-                (SELECT
-        string_agg(enumlabel, ',')
-        FROM "pg_enum" "e"
-        INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
-        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-                ) enumValues
-                    FROM INFORMATION_SCHEMA.COLUMNS c
-                    where table_schema in (${PostgresDriver.buildEscapedObjectList(schemas)})
-        			order by ordinal_position`)).rows;
+    async GetColumnsFromEntity(entities, schemas) {
+        const escapedSchemas = PostgresDriver.buildEscapedObjectList(schemas);
+        const response = (await this.Connection.query(`
+            WITH geometry_columns AS (
+                SELECT 
+                  f_table_name, 
+                  f_geometry_column, 
+                  type, 
+                  coord_dimension, 
+                  srid 
+                FROM 
+                  geometry_columns 
+                WHERE 
+                  f_table_schema in (${escapedSchemas})
+              ) 
+              SELECT 
+                table_name, 
+                column_name, 
+                udt_name, 
+                column_default, 
+                is_nullable, 
+                data_type, 
+                character_maximum_length, 
+                numeric_precision, 
+                numeric_scale, 
+                case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity, 
+                is_identity, 
+                (
+                  SELECT 
+                    count(*) 
+                  FROM 
+                    INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
+                    inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME 
+                  where 
+                    tc.CONSTRAINT_TYPE = 'UNIQUE' 
+                    and tc.TABLE_NAME = c.TABLE_NAME 
+                    and cu.COLUMN_NAME = c.COLUMN_NAME 
+                    and tc.TABLE_SCHEMA = c.TABLE_SCHEMA
+                ) IsUnique, 
+                (
+                  SELECT 
+                    string_agg(enumlabel, ',') 
+                  FROM 
+                    "pg_enum" "e" 
+                    INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid" 
+                    INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace" 
+                  WHERE 
+                    "n"."nspname" = table_schema 
+                    AND "t"."typname" = udt_name
+                ) enumValues, 
+                gc.type as geometry_type, 
+                CASE WHEN udt_name = 'geometry' THEN gc.coord_dimension = 3 ELSE null END as is_3d, 
+                gc.srid 
+              FROM 
+                INFORMATION_SCHEMA.COLUMNS c 
+                LEFT JOIN geometry_columns AS gc ON gc.f_table_name = c.table_name 
+                AND gc.f_geometry_column = c.column_name 
+              where 
+                table_schema in (${escapedSchemas}) 
+              order by 
+                ordinal_position                           
+            `)).rows;
         entities.forEach((ent) => {
             response
                 .filter((filterVal) => filterVal.table_name === ent.tscName)
                 .forEach((resp) => {
+                var _a, _b, _c;
                 const tscName = resp.column_name;
                 const options = {
                     name: resp.column_name,
@@ -77,6 +125,11 @@ class PostgresDriver extends AbstractDriver_1.default {
                     options.nullable = true;
                 if (resp.isunique === "1")
                     options.unique = true;
+                if (resp.udt_name === "geometry") {
+                    options.geometryType = (_a = resp.geometry_type) !== null && _a !== void 0 ? _a : undefined;
+                    options.is3d = (_b = resp.is_3d) !== null && _b !== void 0 ? _b : undefined;
+                    options.srid = (_c = resp.srid) !== null && _c !== void 0 ? _c : undefined;
+                }
                 const generated = resp.isidentity === "YES" || resp.is_identity === "YES"
                     ? true
                     : undefined;

@@ -15,6 +15,7 @@ function getDefaultConnectionOptions() {
         ssl: false,
         skipTables: ["spatial_ref_sys", "schema_migrations"],
         onlyTables: [],
+        retrieveViews: true,
     };
     return connectionOptions;
 }

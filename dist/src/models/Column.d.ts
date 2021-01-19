@@ -20,5 +20,8 @@ export declare type Column = {
         enum?: string[];
         array?: boolean;
         comment?: string;
+        geometryType?: string;
+        is3d?: boolean;
+        srid?: number;
     };
 };

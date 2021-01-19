@@ -12,7 +12,7 @@ export default class MssqlDriver extends AbstractDriver {
     private Connection;
     constructor();
     GetAllTables(schemas: string[], dbNames: string[]): Promise<Entity[]>;
-    GetCoulmnsFromEntity(entities: Entity[], schemas: string[], dbNames: string[]): Promise<Entity[]>;
+    GetColumnsFromEntity(entities: Entity[], schemas: string[], dbNames: string[]): Promise<Entity[]>;
     GetIndexesFromEntity(entities: Entity[], schemas: string[], dbNames: string[]): Promise<Entity[]>;
     GetRelations(entities: Entity[], schemas: string[], dbNames: string[], generationOptions: IGenerationOptions): Promise<Entity[]>;
     DisconnectFromServer(): Promise<void>;

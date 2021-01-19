@@ -45,7 +45,7 @@ class MysqlDriver extends AbstractDriver_1.default {
         });
         return ret;
     }
-    async GetCoulmnsFromEntity(entities, schemas, dbNames) {
+    async GetColumnsFromEntity(entities, schemas, dbNames) {
         const response = await this.ExecQuery(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
             CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY, COLUMN_COMMENT
