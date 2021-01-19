@@ -19,6 +19,7 @@ export default interface IConnectionOptions {
     ssl: boolean;
     skipTables: string[];
     onlyTables: string[];
+    retrieveViews?: boolean;
 }
 
 export function getDefaultConnectionOptions(): IConnectionOptions {
@@ -34,6 +35,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         ssl: false,
         skipTables: ["spatial_ref_sys", "schema_migrations"],
         onlyTables: [],
+        retrieveViews: true,
     };
     return connectionOptions;
 }

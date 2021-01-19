@@ -74,7 +74,7 @@ export default class MysqlDriver extends AbstractDriver {
         return ret;
     }
 
-    public async GetCoulmnsFromEntity(
+    public async GetColumnsFromEntity(
         entities: Entity[],
         schemas: string[],
         dbNames: string[]

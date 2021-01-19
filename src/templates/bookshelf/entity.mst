@@ -30,13 +30,15 @@ import { {{toClassName entityName "Model"}}, {{toClassName entityName "Attribute
 {{#*inline "Attributes"}}
 export type {{toClassName tscName "Attributes"}} = {
     {{#columns}}{{> Column}}{{/columns~}}
+    {{#if relations}}
     // relations
     {{#relations}}{{> RelationAttribute}}{{/relations}}
+    {{/if}}
 }
 {{/inline}}
 
 {{#*inline "Meta"}}
-const meta = {
+const attributes = {
     {{#columns}}{{> ColumnMeta}}{{/columns~}}
 };
 {{/inline}}
@@ -51,8 +53,8 @@ const meta = {
 {{#*inline "Entity"}}
 export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{toClassName tscName "Model"}}, {{toClassName tscName "Attributes"}}> {
     static tableName = '{{tscName}}';
-
-    static attributes = meta;
+    static isView = {{isView}};
+    static attributes = attributes;
 
     get tableName() {
         return '{{tscName}}';

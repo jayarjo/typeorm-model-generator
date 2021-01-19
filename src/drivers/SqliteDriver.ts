@@ -73,7 +73,7 @@ export default class SqliteDriver extends AbstractDriver {
         return ret;
     }
 
-    public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
+    public async GetColumnsFromEntity(entities: Entity[]): Promise<Entity[]> {
         await Promise.all(
             entities.map(async (ent) => {
                 const response = await this.ExecQuery<{

@@ -174,9 +174,10 @@ export default abstract class AbstractDriver {
         await this.ConnectToServer(connectionOptions);
         dbModel = await this.GetAllTables(
             connectionOptions.schemaNames,
-            connectionOptions.databaseNames
+            connectionOptions.databaseNames,
+            !!connectionOptions.retrieveViews
         );
-        await this.GetCoulmnsFromEntity(
+        await this.GetColumnsFromEntity(
             dbModel,
             connectionOptions.schemaNames,
             connectionOptions.databaseNames
@@ -223,7 +224,8 @@ export default abstract class AbstractDriver {
 
     public abstract GetAllTables(
         schemas: string[],
-        dbNames: string[]
+        dbNames: string[],
+        retrieveViews?: boolean
     ): Promise<Entity[]>;
 
     public static GetRelationsFromRelationTempInfo(
@@ -383,7 +385,7 @@ export default abstract class AbstractDriver {
         return entities;
     }
 
-    public abstract GetCoulmnsFromEntity(
+    public abstract GetColumnsFromEntity(
         entities: Entity[],
         schemas: string[],
         dbNames: string[]

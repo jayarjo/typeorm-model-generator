@@ -39,19 +39,29 @@ export default class PostgresDriver extends AbstractDriver {
 
     public async GetAllTables(
         schemas: string[],
-        dbNames: string[]
+        dbNames: string[],
+        retrieveViews = false
     ): Promise<Entity[]> {
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
+            IS_VIEW: boolean;
         }[] = (
-            await this.Connection.query(
-                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${PostgresDriver.buildEscapedObjectList(
+            await this.Connection.query(`SELECT 
+                table_schema as "TABLE_SCHEMA", 
+                table_name as "TABLE_NAME", 
+                table_catalog as "DB_NAME",
+                CASE WHEN TABLE_TYPE = 'VIEW' THEN true ELSE false END as "IS_VIEW"
+              FROM 
+                INFORMATION_SCHEMA.TABLES 
+              WHERE 
+                TABLE_TYPE in ('BASE TABLE'${retrieveViews ? `, 'VIEW'` : ""}) 
+                AND table_schema in (${PostgresDriver.buildEscapedObjectList(
                     schemas
-                )})`
-            )
+                )})`)
         ).rows;
+
         const ret: Entity[] = [];
         response.forEach((val) => {
             ret.push({
@@ -65,12 +75,13 @@ export default class PostgresDriver extends AbstractDriver {
                 database: dbNames.length > 1 ? val.DB_NAME : "",
                 schema: val.TABLE_SCHEMA,
                 fileImports: [],
+                isView: val.IS_VIEW,
             });
         });
         return ret;
     }
 
-    public async GetCoulmnsFromEntity(
+    public async GetColumnsFromEntity(
         entities: Entity[],
         schemas: string[]
     ): Promise<Entity[]> {
@@ -91,33 +102,53 @@ export default class PostgresDriver extends AbstractDriver {
             enumvalues: string | null;
             /* eslint-enable camelcase */
         }[] = (
-            await this.Connection
-                .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
-                    data_type,character_maximum_length,numeric_precision,numeric_scale,
-                    case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
-                    is_identity,
-        			(SELECT count(*)
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-                    on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-            where
-                tc.CONSTRAINT_TYPE = 'UNIQUE'
-                and tc.TABLE_NAME = c.TABLE_NAME
-                and cu.COLUMN_NAME = c.COLUMN_NAME
-                and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
-                (SELECT
-        string_agg(enumlabel, ',')
-        FROM "pg_enum" "e"
-        INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
-        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-                ) enumValues
-                    FROM INFORMATION_SCHEMA.COLUMNS c
-                    where table_schema in (${PostgresDriver.buildEscapedObjectList(
-                        schemas
-                    )})
-        			order by ordinal_position`)
+            await this.Connection.query(`
+                SELECT 
+                table_name, 
+                column_name, 
+                udt_name, 
+                column_default, 
+                is_nullable, 
+                data_type, 
+                character_maximum_length, 
+                numeric_precision, 
+                numeric_scale, 
+                case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity, 
+                is_identity, 
+                (
+                  SELECT 
+                    count(*) 
+                  FROM 
+                    INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
+                    inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME 
+                  where 
+                    tc.CONSTRAINT_TYPE = 'UNIQUE' 
+                    and tc.TABLE_NAME = c.TABLE_NAME 
+                    and cu.COLUMN_NAME = c.COLUMN_NAME 
+                    and tc.TABLE_SCHEMA = c.TABLE_SCHEMA
+                ) IsUnique, 
+                (
+                  SELECT 
+                    string_agg(enumlabel, ',') 
+                  FROM 
+                    "pg_enum" "e" 
+                    INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid" 
+                    INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace" 
+                  WHERE 
+                    "n"."nspname" = table_schema 
+                    AND "t"."typname" = udt_name
+                ) enumValues 
+              FROM 
+                INFORMATION_SCHEMA.COLUMNS c 
+              where 
+                table_schema in (${PostgresDriver.buildEscapedObjectList(
+                    schemas
+                )}) 
+              order by 
+                ordinal_position              
+            `)
         ).rows;
+
         entities.forEach((ent) => {
             response
                 .filter((filterVal) => filterVal.table_name === ent.tscName)

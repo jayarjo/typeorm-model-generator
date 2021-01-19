@@ -69,7 +69,7 @@ export default class OracleDriver extends AbstractDriver {
         return ret;
     }
 
-    public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
+    public async GetColumnsFromEntity(entities: Entity[]): Promise<Entity[]> {
         const response = (
             await this.Connection.execute<{
                 TABLE_NAME: string;
