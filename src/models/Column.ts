@@ -22,5 +22,9 @@ export type Column = {
         enum?: string[];
         array?: boolean; // ?
         comment?: string;
+        // geometry related
+        geometryType?: string;
+        is3d?: boolean;
+        srid?: number;
     };
 };

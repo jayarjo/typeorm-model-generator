@@ -63,6 +63,10 @@ module.exports = (generationOptions: IGenerationOptions) => ({
             .join(", ")}]`;
     },
 
+    printString(str: any) {
+        return `${str}`;
+    },
+
     printIdAttribute(columns: Column[]) {
         const primaryKeysCount = columns.reduce(
             (sum: number, col: Column) => (col.primary ? sum + 1 : sum),

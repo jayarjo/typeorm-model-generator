@@ -85,6 +85,8 @@ export default class PostgresDriver extends AbstractDriver {
         entities: Entity[],
         schemas: string[]
     ): Promise<Entity[]> {
+        const escapedSchemas = PostgresDriver.buildEscapedObjectList(schemas);
+
         const response: {
             /* eslint-disable camelcase */
             table_name: string;
@@ -100,10 +102,25 @@ export default class PostgresDriver extends AbstractDriver {
             is_identity: string; // reccommended INDENTITY type for pg > 10
             isunique: string;
             enumvalues: string | null;
+            geometry_type: string | null;
+            is_3d: boolean | null;
+            srid: number | null;
             /* eslint-enable camelcase */
         }[] = (
             await this.Connection.query(`
+            WITH geometry_columns AS (
                 SELECT 
+                  f_table_name, 
+                  f_geometry_column, 
+                  type, 
+                  coord_dimension, 
+                  srid 
+                FROM 
+                  geometry_columns 
+                WHERE 
+                  f_table_schema in (${escapedSchemas})
+              ) 
+              SELECT 
                 table_name, 
                 column_name, 
                 udt_name, 
@@ -137,15 +154,18 @@ export default class PostgresDriver extends AbstractDriver {
                   WHERE 
                     "n"."nspname" = table_schema 
                     AND "t"."typname" = udt_name
-                ) enumValues 
+                ) enumValues, 
+                gc.type as geometry_type, 
+                CASE WHEN udt_name = 'geometry' THEN gc.coord_dimension = 3 ELSE null END as is_3d, 
+                gc.srid 
               FROM 
                 INFORMATION_SCHEMA.COLUMNS c 
+                LEFT JOIN geometry_columns AS gc ON gc.f_table_name = c.table_name 
+                AND gc.f_geometry_column = c.column_name 
               where 
-                table_schema in (${PostgresDriver.buildEscapedObjectList(
-                    schemas
-                )}) 
+                table_schema in (${escapedSchemas}) 
               order by 
-                ordinal_position              
+                ordinal_position                           
             `)
         ).rows;
 
@@ -159,6 +179,12 @@ export default class PostgresDriver extends AbstractDriver {
                     };
                     if (resp.is_nullable === "YES") options.nullable = true;
                     if (resp.isunique === "1") options.unique = true;
+
+                    if (resp.udt_name === "geometry") {
+                        options.geometryType = resp.geometry_type ?? undefined;
+                        options.is3d = resp.is_3d ?? undefined;
+                        options.srid = resp.srid ?? undefined;
+                    }
 
                     const generated =
                         resp.isidentity === "YES" || resp.is_identity === "YES"

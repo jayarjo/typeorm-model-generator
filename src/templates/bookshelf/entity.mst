@@ -19,6 +19,11 @@ import { {{toClassName entityName "Model"}}, {{toClassName entityName "Attribute
     {{~#if options.nullable}}isNullable: true,{{/if}}
     {{~#if options.array}}isArray: true,{{/if}}
     {{~#if options.enum}}options: {{printArray options.enum}},{{/if}}
+    {{#if (eq type "geometry")}}
+    geometryType: '{{options.geometryType}}',
+    is3d: {{printString options.is3d}},
+    srid: {{printString options.srid}},
+    {{/if}}
 },
 {{/inline}}
 
