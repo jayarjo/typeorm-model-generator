@@ -3,7 +3,7 @@
 {{/inline}}
 
 {{#*inline "Import"}}
-import {{localImport (toClassName entityName "Model")}} from './{{toFileName fileName}}'
+import { {{toClassName entityName "Model"}}, {{toClassName entityName "Attributes"}} } from './{{toFileName fileName}}'
 {{/inline}}
 
 {{#*inline "Column"}}
@@ -24,7 +24,7 @@ import {{localImport (toClassName entityName "Model")}} from './{{toFileName fil
 
 
 {{#*inline "RelationAttribute"}}
-{{toPropertyName fieldName}}?: {{toRelation (toClassName relatedTable "Model") relationType}},
+{{toPropertyName fieldName}}?: {{toRelation (toClassName relatedTable "Attributes") relationType}},
 {{/inline}}
 
 {{#*inline "Attributes"}}
@@ -43,7 +43,7 @@ const meta = {
 
 {{#*inline "Relation"}}
 {{toPropertyName fieldName}}(): {{toRelation (toClassName relatedTable "Model") relationType}} {
-    return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}, {{printJoinOptions .}});
+    return this.{{toRelationMethod relationType}}({{toClassName relatedTable "Model"}}{{printJoinOptions .}});
 }
 
 {{/inline}}
@@ -59,6 +59,8 @@ export {{defaultExport}} class {{toClassName tscName "Model"}} extends Model<{{t
     }
 
     {{printHasTimestamps columns}}
+
+    {{printIdAttribute colums}}
 
     {{printGeometries columns}}
 

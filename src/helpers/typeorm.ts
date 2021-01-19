@@ -1,8 +1,7 @@
 import * as changeCase from "change-case";
-import { Relation } from "../models/Relation";
 import commonHelpers from "./common";
 
-export default (generationOptions) => ({
+module.exports = (generationOptions) => ({
     ...commonHelpers(generationOptions),
 
     json(context) {
@@ -27,5 +26,11 @@ export default (generationOptions) => ({
                 throw new Error("Unknown case style");
         }
         return retStr;
+    },
+
+    localImport(...importNames: string[]) {
+        return generationOptions.exportType === "default"
+            ? importNames[0]
+            : `{${importNames.join(", ")}}`;
     },
 });

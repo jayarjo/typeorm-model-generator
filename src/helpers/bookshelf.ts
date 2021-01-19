@@ -5,7 +5,7 @@ import commonHelpers from "./common";
 import { Column } from "../models/Column";
 import { Relation } from "../models/Relation";
 
-export default (generationOptions: IGenerationOptions) => ({
+module.exports = (generationOptions: IGenerationOptions) => ({
     ...commonHelpers(generationOptions),
 
     toClassName(tableName, suffix = "") {
@@ -51,7 +51,7 @@ export default (generationOptions: IGenerationOptions) => ({
             []
         );
         return geometries.length
-            ? `get geometry() {
+            ? `get geometry(): string[] {
                 return ['${geometries.join(", ")}'];
             }`
             : "";
@@ -61,6 +61,17 @@ export default (generationOptions: IGenerationOptions) => ({
         return `[${arr
             .map((item) => (typeof item === "number" ? item : `'${item}'`))
             .join(", ")}]`;
+    },
+
+    printIdAttribute(columns) {
+        const primaryKeysCount = columns.reduce((sum, col) =>
+            col.primary ? sum + 1 : sum
+        );
+        return primaryKeysCount !== 1
+            ? `get idAttribute() { 
+            return null 
+        }`
+            : "";
     },
 
     toRelationMethod(relationType) {
@@ -80,9 +91,19 @@ export default (generationOptions: IGenerationOptions) => ({
     },
 
     printJoinOptions(relation: Relation) {
-        if (relation.relationType === "ManyToMany") {
-            return `'${relation.joinTableOptions?.name}', '${relation.joinTableOptions?.joinColumns?.[0].name}', '${relation.joinTableOptions?.inverseJoinColumns?.[0].name}'`;
+        switch (relation.relationType) {
+            case "OneToOne":
+                return "";
+            case "OneToMany":
+                return `, '${relation.joinColumnOptions?.[0].referencedColumnName}'`;
+            case "ManyToOne":
+                return `, '${relation.joinColumnOptions?.[0].name}'`;
+            case "ManyToMany":
+                return `, '${relation.joinTableOptions?.name}', '${relation.joinTableOptions?.joinColumns?.[0].name}', '${relation.joinTableOptions?.inverseJoinColumns?.[0].name}'`;
+
+            default:
+                // should never happen, but prepare to crash vocally
+                return `UNSUPPORTED_RELATION: ${relation.relationType}`;
         }
-        return `'${relation.joinColumnOptions?.[0].referencedColumnName}'`;
     },
 });

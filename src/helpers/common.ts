@@ -65,12 +65,6 @@ export default (generationOptions) => ({
         return generationOptions.exportType === "default" ? "default" : "";
     },
 
-    localImport(entityName: string) {
-        return generationOptions.exportType === "default"
-            ? entityName
-            : `{${entityName}}`;
-    },
-
     strictMode() {
         return generationOptions.strictMode !== "none"
             ? generationOptions.strictMode
