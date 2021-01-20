@@ -3,11 +3,15 @@
 {{/inline}}
 
 {{#*inline "Import"}}
+{{#if isRelation}}
 import { {{toClassName entityName "Model"}}, {{toClassName entityName "Attributes"}} } from './{{toFileName fileName}}'
+{{else}}
+import { {{#each entityName}}{{this}}, {{/each}} } from '{{toFileName fileName}}'
+{{/if}}
 {{/inline}}
 
 {{#*inline "Column"}}
-{{toPropertyName tscName}}:{{tscType}}{{#if options.nullable}} | null{{/if}},
+{{toPropertyName tscName}}: {{toAttributeType . tableName}},
 {{/inline}}
 
 {{#*inline "ColumnMeta"}}
@@ -34,7 +38,7 @@ import { {{toClassName entityName "Model"}}, {{toClassName entityName "Attribute
 
 {{#*inline "Attributes"}}
 export type {{toClassName tscName "Attributes"}} = {
-    {{#columns}}{{> Column}}{{/columns~}}
+    {{#columns}}{{> Column tableName=../tscName}}{{/columns~}}
     {{#if relations}}
     // relations
     {{#relations}}{{> RelationAttribute}}{{/relations}}

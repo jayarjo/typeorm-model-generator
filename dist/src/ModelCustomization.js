@@ -142,23 +142,43 @@ function removeColumnDefaultProperties(dbModel, defaultValues) {
     });
     return dbModel;
 }
-function findFileImports(dbModel) {
+function findFileImports(dbModel, generationOptions) {
     dbModel.forEach((entity) => {
         entity.relations.forEach((relation) => {
             if (relation.relatedTable !== entity.tscName &&
                 !entity.fileImports.some((v) => v.entityName === relation.relatedTable)) {
-                const relatedTable = dbModel.find((related) => related.tscName == relation.relatedTable);
+                const relatedTable = dbModel.find((related) => related.tscName === relation.relatedTable);
                 entity.fileImports.push({
                     entityName: relatedTable.tscName,
                     fileName: relatedTable.fileName,
+                    isRelation: true,
                 });
             }
+        });
+        const typeImports = {};
+        entity.columns.forEach((col) => {
+            var _a, _b, _c;
+            const customType = (_b = (_a = generationOptions.customAttributeTypes) === null || _a === void 0 ? void 0 : _a[`${entity.tscName}.${col.options.name}`]) !== null && _b !== void 0 ? _b : (_c = generationOptions.customAttributeTypes) === null || _c === void 0 ? void 0 : _c[col.options.name];
+            if (customType) {
+                // potentially there might be more than one import from single file
+                if (!typeImports[customType.path]) {
+                    typeImports[customType.path] = [];
+                }
+                typeImports[customType.path].push(customType.type);
+            }
+        });
+        Object.keys(typeImports).forEach((path) => {
+            entity.fileImports.push({
+                entityName: typeImports[path],
+                fileName: path,
+                isRelation: false,
+            });
         });
     });
     return dbModel;
 }
 function addImportsAndGenerationOptions(dbModel, generationOptions) {
-    dbModel = findFileImports(dbModel);
+    dbModel = findFileImports(dbModel, generationOptions);
     dbModel.forEach((entity) => {
         entity.relations.forEach((relation) => {
             if (generationOptions.lazy) {

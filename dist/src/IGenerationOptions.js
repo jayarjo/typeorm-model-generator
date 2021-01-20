@@ -31,6 +31,16 @@ function getDefaultGenerationOptions() {
         exportType: "named",
         orm,
         relationAliases: {},
+        customAttributeTypes: {
+            vertical_id: {
+                type: "Vertical",
+                path: "@server/tasks/constants",
+            },
+            "map_tasks.state": {
+                type: "TaskState",
+                path: "@server/tasks/constants",
+            },
+        },
     };
     return generationOptions;
 }

@@ -20,6 +20,10 @@ export default interface IGenerationOptions {
     relationAliases: Record<string, string>;
     templatesPath: string;
     helpersPaths: string;
+    customAttributeTypes: Record<string, {
+        type: string;
+        path: string;
+    }>;
 }
 export declare const eolConverter: {
     LF: string;

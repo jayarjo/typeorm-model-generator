@@ -97,5 +97,9 @@ module.exports = (generationOptions) => (Object.assign(Object.assign({}, common_
                 // should never happen, but prepare to crash vocally
                 return `UNSUPPORTED_RELATION: ${relation.relationType}`;
         }
+    },
+    toAttributeType(col, tableName) {
+        var _a, _b, _c, _d, _e, _f;
+        return ((_f = (_c = (_b = (_a = generationOptions.customAttributeTypes) === null || _a === void 0 ? void 0 : _a[`${tableName}.${col.options.name}`]) === null || _b === void 0 ? void 0 : _b.type) !== null && _c !== void 0 ? _c : (_e = (_d = generationOptions.customAttributeTypes) === null || _d === void 0 ? void 0 : _d[col.options.name]) === null || _e === void 0 ? void 0 : _e.type) !== null && _f !== void 0 ? _f : `${col.tscType}${col.options.nullable ? "| null" : ""}`);
     } }));
 //# sourceMappingURL=bookshelf.js.map

@@ -13,8 +13,9 @@ export declare type Entity = {
     indices: Index[];
     fileName: string;
     fileImports: {
-        entityName: string;
+        entityName: string | string[];
         fileName: string;
+        isRelation?: boolean;
     }[];
     activeRecord?: true;
     generateConstructor?: true;
