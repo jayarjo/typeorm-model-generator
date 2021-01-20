@@ -122,4 +122,14 @@ module.exports = (generationOptions: IGenerationOptions) => ({
                 return `UNSUPPORTED_RELATION: ${relation.relationType}`;
         }
     },
+
+    toAttributeType(col: Column, tableName: string) {
+        return (
+            generationOptions.customAttributeTypes?.[
+                `${tableName}.${col.options.name}`
+            ]?.type ??
+            generationOptions.customAttributeTypes?.[col.options.name]?.type ??
+            `${col.tscType}${col.options.nullable ? "| null" : ""}`
+        );
+    },
 });

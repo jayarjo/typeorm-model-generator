@@ -4,6 +4,7 @@ import { Entity } from "./models/Entity";
 import IGenerationOptions from "./IGenerationOptions";
 import * as NamingStrategy from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
+import { Column } from "./models/Column";
 
 export default function modelCustomizationPhase(
     dbModel: Entity[],
@@ -213,7 +214,10 @@ function removeColumnDefaultProperties(
     return dbModel;
 }
 
-function findFileImports(dbModel: Entity[]) {
+function findFileImports(
+    dbModel: Entity[],
+    generationOptions: IGenerationOptions
+) {
     dbModel.forEach((entity) => {
         entity.relations.forEach((relation) => {
             if (
@@ -223,13 +227,37 @@ function findFileImports(dbModel: Entity[]) {
                 )
             ) {
                 const relatedTable = dbModel.find(
-                    (related) => related.tscName == relation.relatedTable
+                    (related) => related.tscName === relation.relatedTable
                 )!;
                 entity.fileImports.push({
                     entityName: relatedTable.tscName,
                     fileName: relatedTable.fileName,
+                    isRelation: true,
                 });
             }
+        });
+
+        const typeImports = {};
+        entity.columns.forEach((col: Column) => {
+            const customType =
+                generationOptions.customAttributeTypes?.[
+                    `${entity.tscName}.${col.options.name}`
+                ] ?? generationOptions.customAttributeTypes?.[col.options.name];
+
+            if (customType) {
+                // potentially there might be more than one import from single file
+                if (!typeImports[customType.path]) {
+                    typeImports[customType.path] = [];
+                }
+                typeImports[customType.path].push(customType.type);
+            }
+        });
+        Object.keys(typeImports).forEach((path) => {
+            entity.fileImports.push({
+                entityName: typeImports[path],
+                fileName: path,
+                isRelation: false,
+            });
         });
     });
     return dbModel;
@@ -239,7 +267,7 @@ function addImportsAndGenerationOptions(
     dbModel: Entity[],
     generationOptions: IGenerationOptions
 ): Entity[] {
-    dbModel = findFileImports(dbModel);
+    dbModel = findFileImports(dbModel, generationOptions);
     dbModel.forEach((entity) => {
         entity.relations.forEach((relation) => {
             if (generationOptions.lazy) {

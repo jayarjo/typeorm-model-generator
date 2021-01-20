@@ -17,8 +17,9 @@ export type Entity = {
     // TODO: move to sub-object or use handlebars helpers(?)
     fileName: string;
     fileImports: {
-        entityName: string;
+        entityName: string | string[];
         fileName: string;
+        isRelation?: boolean;
     }[];
     activeRecord?: true;
     generateConstructor?: true;
